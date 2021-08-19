@@ -39,12 +39,12 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 
 # 设置mysql的root账户的密码
-# 创建名为twitter的数据库
+# 创建名为honks的数据库
 sudo mysql -u root << EOF
 	ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Ljh.112358132134';
 	flush privileges;
 	show databases;
-	CREATE DATABASE IF NOT EXISTS twitter;
+	CREATE DATABASE IF NOT EXISTS honks;
 EOF
 # fi
 
@@ -53,7 +53,7 @@ USER="admin"
 # superuser密码
 PASS="admin"
 # superuser邮箱
-MAIL="admin@twitter.com"
+MAIL="admin@honks.com"
 script="
 from django.contrib.auth.models import User;
 
