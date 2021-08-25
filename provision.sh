@@ -23,7 +23,7 @@ if [ ! -f "/usr/bin/pip" ]; then
   sudo apt-get install -y python-setuptools
   sudo ln -s /usr/bin/pip3 /usr/bin/pip
 else
-  echo "pip3 已安装"
+  echo "pip3 installed"
 fi
 
 # 升级pip，目前存在问题，read timed out，看脸，有时候可以，但大多时候不行
@@ -39,21 +39,21 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 
 # 设置mysql的root账户的密码
-# 创建名为honks的数据库
+# 创建名为honker的数据库
 sudo mysql -u root << EOF
 	ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Ljh.112358132134';
 	flush privileges;
 	show databases;
-	CREATE DATABASE IF NOT EXISTS honks;
+	CREATE DATABASE IF NOT EXISTS honker;
 EOF
 # fi
 
-# superuser名字
+# superuser username
 USER="admin"
-# superuser密码
+# superuser password
 PASS="admin"
-# superuser邮箱
-MAIL="admin@honks.com"
+# superuser email
+MAIL="admin@honker.com"
 script="
 from django.contrib.auth.models import User;
 
