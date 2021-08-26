@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from honks.api.serializers import HonkCreateSerializer, HonkSerializer
 from honks.models import Honk
+from newsfeeds.services import NewsFeedService
 
 
 class HonkViewSet(viewsets.GenericViewSet,
@@ -35,6 +36,7 @@ class HonkViewSet(viewsets.GenericViewSet,
                 'errors': serializer.errors,
             }, status=400)
         honk = serializer.save()
+        NewsFeedService.fan_out_to_followers(honk)
         return Response(HonkSerializer(honk).data, status=201)
 
     def list(self, request, *args, **kwargs):
