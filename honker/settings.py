@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # project apps
     'accounts',
     'honks',
+    'friendships',
 ]
 
 REST_FRAMEWORK = {
