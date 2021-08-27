@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from comments.api.permissions import IsObjectOwner
 from comments.api.serializers import CommentSerializerForCreate, CommentSerializer, CommentSerializerForUpdate
 from comments.models import Comment
+from utils.decorators import required_params
 
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -62,15 +63,8 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment.delete()
         return Response({'success': True}, status=status.HTTP_200_OK)
 
+    @required_params(params=['honk_id'])
     def list(self, request, *args, **kwargs):
-        if 'honk_id' not in request.query_params:
-            return Response(
-                {
-                    'message': 'missing honk_id in request',
-                    'success': False,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         comments = Comment.objects.filter(honk_id=request.query_params['honk_id']).order_by('created_at')
         serializer = CommentSerializer(comments, many=True)
         return Response(
