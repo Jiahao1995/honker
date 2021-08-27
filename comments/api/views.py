@@ -61,3 +61,19 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment = self.get_object()
         comment.delete()
         return Response({'success': True}, status=status.HTTP_200_OK)
+
+    def list(self, request, *args, **kwargs):
+        if 'honk_id' not in request.query_params:
+            return Response(
+                {
+                    'message': 'missing honk_id in request',
+                    'success': False,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        comments = Comment.objects.filter(honk_id=request.query_params['honk_id']).order_by('created_at')
+        serializer = CommentSerializer(comments, many=True)
+        return Response(
+            {'comments': serializer.data},
+            status=status.HTTP_200_OK,
+        )
