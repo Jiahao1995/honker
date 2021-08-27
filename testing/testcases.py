@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase as DjangoTestCase
 from rest_framework.test import APIClient
 
+from comments.models import Comment
 from honks.models import Honk
 
 
@@ -29,3 +30,8 @@ class TestCase(DjangoTestCase):
         if content is None:
             content = 'default honk content'
         return Honk.objects.create(user=user, content=content)
+
+    def create_comment(self, user, honk, content=None):
+        if content is None:
+            content = 'default comment content'
+        return Comment.objects.create(user=user, honk=honk, content=content)
