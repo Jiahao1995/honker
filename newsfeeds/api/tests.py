@@ -13,8 +13,6 @@ class NewsFeedApiTests(TestCase):
     def setUp(self):
         super(NewsFeedApiTests, self).setUp()
 
-        self.anonymous_client = APIClient()
-
         self.jeeves = self.create_user('jeeves')
         self.jeeves_client = APIClient()
         self.jeeves_client.force_authenticate(self.jeeves)
