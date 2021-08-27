@@ -2,9 +2,10 @@ from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from honks.api.serializers import HonkCreateSerializer, HonkSerializer
+from honks.api.serializers import HonkCreateSerializer, HonkSerializer, HonkSerializerWithComments
 from honks.models import Honk
 from newsfeeds.services import NewsFeedService
+from utils.decorators import required_params
 
 
 class HonkViewSet(viewsets.GenericViewSet,
@@ -17,9 +18,13 @@ class HonkViewSet(viewsets.GenericViewSet,
     serializer_class = HonkCreateSerializer
 
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAuthenticated()]
+
+    def retrieve(self, request, *args, **kwargs):
+        honk = self.get_object()
+        return Response(HonkSerializerWithComments(honk).data)
 
     def create(self, request, *args, **kwargs):
         """
@@ -39,13 +44,8 @@ class HonkViewSet(viewsets.GenericViewSet,
         NewsFeedService.fan_out_to_followers(honk)
         return Response(HonkSerializer(honk).data, status=201)
 
+    @required_params(params=['user_id'])
     def list(self, request, *args, **kwargs):
-        """
-        reload list() method
-        """
-        if 'user_id' not in request.query_params:
-            return Response('missing user_id', status=400)
-
         honks = Honk.objects.filter(
             user_id=request.query_params['user_id']
         ).order_by('-created_at')
