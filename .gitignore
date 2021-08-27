@@ -1,7 +1,6 @@
 *.box
 .vagrant
 Vagrantfile
-.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -138,3 +137,5 @@ dmypy.json
 /.idea/modules.xml
 /.idea/misc.xml
 /.idea/honks.iml
+/.idea/workspace.xml
+/.idea/honker.iml
