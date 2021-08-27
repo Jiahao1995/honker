@@ -1,16 +1,27 @@
 from datetime import timedelta
 
-from django.contrib.auth.models import User
-from django.test import TestCase
+from testing.testcases import TestCase
 
-from honks.models import Honk
 from utils.time_helpers import utc_now
 
 
 class HonkTests(TestCase):
+    def setUp(self):
+        self.jeeves = self.create_user('jeeves')
+        self.honk = self.create_honk(self.jeeves, content='Hello World')
+
     def test_hours_to_now(self):
-        user = User.objects.create_user(username='admin')
-        honk = Honk.objects.create(user=user, content='Hello World')
-        honk.created_at = utc_now() - timedelta(hours=10)
-        honk.save()
-        self.assertEqual(honk.hours_to_now, 10)
+        self.honk.created_at = utc_now() - timedelta(hours=10)
+        self.honk.save()
+        self.assertEqual(self.honk.hours_to_now, 10)
+
+    def test_like_set(self):
+        self.create_like(self.jeeves, self.honk)
+        self.assertEqual(self.honk.like_set.count(), 1)
+
+        self.create_like(self.jeeves, self.honk)
+        self.assertEqual(self.honk.like_set.count(), 1)
+
+        brenda = self.create_user('brenda')
+        self.create_like(brenda, self.honk)
+        self.assertEqual(self.honk.like_set.count(), 2)
