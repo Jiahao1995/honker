@@ -6,6 +6,7 @@ from rest_framework.test import APIClient
 from comments.models import Comment
 from honks.models import Honk
 from likes.models import Like
+from newsfeeds.models import NewsFeed
 
 
 class TestCase(DjangoTestCase):
@@ -51,3 +52,6 @@ class TestCase(DjangoTestCase):
         client = APIClient()
         client.force_authenticate(user)
         return user, client
+
+    def create_newsfeed(self, user, honk):
+        return NewsFeed.objects.create(user=user, honk=honk)

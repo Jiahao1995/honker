@@ -5,6 +5,9 @@ from comments.models import Comment
 from testing.testcases import TestCase
 
 COMMENT_URL = '/api/comments/'
+HONK_LIST_API = '/api/honks/'
+HONK_DETAIL_API = '/api/honks/{}/'
+NEWSFEED_LIST_API = '/api/newsfeeds/'
 
 
 class CommentApiTests(TestCase):
@@ -133,3 +136,21 @@ class CommentApiTests(TestCase):
             'user_id': self.jeeves.id,
         })
         self.assertEqual(len(response.data['comments']), 2)
+
+    def test_comments_count(self):
+        honk = self.create_honk(self.jeeves)
+        url = HONK_DETAIL_API.format(honk.id)
+        response = self.brenda_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments_count'], 0)
+
+        self.create_comment(self.jeeves, honk)
+        response = self.brenda_client.get(HONK_LIST_API, {'user_id': self.jeeves.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['honks'][0]['comments_count'], 1)
+
+        self.create_comment(self.brenda, honk)
+        self.create_newsfeed(self.brenda, honk)
+        response = self.brenda_client.get(NEWSFEED_LIST_API)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['newsfeeds'][0]['honk']['comments_count'], 2)
