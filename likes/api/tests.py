@@ -1,7 +1,13 @@
+from rest_framework.test import APIClient
+
 from testing.testcases import TestCase
 
 LIKE_BASE_URL = '/api/likes/'
 LIKE_CANCEL_URL = '/api/likes/cancel/'
+COMMENT_LIST_API = '/api/comments/'
+HONK_LIST_API = '/api/honks/'
+HONK_DETAIL_API = '/api/honks/{}/'
+NEWSFEED_LIST_API = '/api/newsfeeds/'
 
 
 class LikeApiTests(TestCase):
@@ -129,3 +135,67 @@ class LikeApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(honk.like_set.count(), 0)
         self.assertEqual(comment.like_set.count(), 0)
+
+    def test_likes_in_comments_api(self):
+        honk = self.create_honk(self.jeeves)
+        comment = self.create_comment(self.jeeves, honk)
+
+        # must login first to cancel like
+        anonymous_client = APIClient()
+        response = anonymous_client.get(COMMENT_LIST_API, {'honk_id': honk.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['has_liked'], False)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 0)
+
+        # test comments list api
+        response = self.brenda_client.get(COMMENT_LIST_API, {'honk_id': honk.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['has_liked'], False)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 0)
+        self.create_like(self.brenda, comment)
+        response = self.brenda_client.get(COMMENT_LIST_API, {'honk_id': honk.id})
+        self.assertEqual(response.data['comments'][0]['has_liked'], True)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 1)
+
+        # test honk detail api
+        self.create_like(self.jeeves, comment)
+        url = HONK_DETAIL_API.format(honk.id)
+        response = self.brenda_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['has_liked'], True)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 2)
+
+    def test_likes_in_tweets_api(self):
+        honk = self.create_honk(self.jeeves)
+
+        # test tweet detail api
+        url = HONK_DETAIL_API.format(honk.id)
+        response = self.brenda_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['has_liked'], False)
+        self.assertEqual(response.data['likes_count'], 0)
+        self.create_like(self.brenda, honk)
+        response = self.brenda_client.get(url)
+        self.assertEqual(response.data['has_liked'], True)
+        self.assertEqual(response.data['likes_count'], 1)
+
+        # test tweets list api
+        response = self.brenda_client.get(HONK_LIST_API, {'user_id': self.jeeves.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['honks'][0]['has_liked'], True)
+        self.assertEqual(response.data['honks'][0]['likes_count'], 1)
+
+        # test newsfeeds list api
+        self.create_like(self.jeeves, honk)
+        self.create_newsfeed(self.brenda, honk)
+        response = self.brenda_client.get(NEWSFEED_LIST_API)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['newsfeeds'][0]['honk']['has_liked'], True)
+        self.assertEqual(response.data['newsfeeds'][0]['honk']['likes_count'], 2)
+
+        # test likes details
+        url = HONK_DETAIL_API.format(honk.id)
+        response = self.brenda_client.get(url)
+        self.assertEqual(len(response.data['likes']), 2)
+        self.assertEqual(response.data['likes'][0]['user']['id'], self.jeeves.id)
+        self.assertEqual(response.data['likes'][1]['user']['id'], self.brenda.id)
